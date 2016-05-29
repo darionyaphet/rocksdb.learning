@@ -30,6 +30,7 @@ public class BasicExample {
         // that determines the behavior of a database.
         Options options = new Options().setCreateIfMissing(true);
         options = options.setWalDir("");
+        options = options.setParanoidChecks(true);
         System.out.println("WAL : " + options.walDir());
 
         SkipListMemTableConfig memTableConfig = new SkipListMemTableConfig();
@@ -46,6 +47,7 @@ public class BasicExample {
 
         System.out.println(new String(client.get("workman".getBytes())));
 
+        //
         List<byte[]> keys = Stream.of("workman", "worked", "working", "worker")
                 .map(String::getBytes).collect(Collectors.toList());
         for (Map.Entry<byte[], byte[]> entry : client.multiGet(keys).entrySet()) {
@@ -54,12 +56,19 @@ public class BasicExample {
             System.out.printf("%-7s --> %-7s\n", key, val);
         }
 
+        //remove some key-value pairs
+        for (byte[] key : keys) {
+            client.remove(key);
+        }
 
+        //
         RocksIterator iterator = client.newIterator();
         iterator.seekToFirst();
         iterator.seekToLast();
 
         ReadOptions readOptions = new ReadOptions();
+        readOptions = readOptions.setVerifyChecksums(true);
+
         Snapshot snapshot = readOptions.snapshot();
         System.out.println(snapshot.getSequenceNumber());
 
