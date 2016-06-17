@@ -6,8 +6,10 @@ import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
+import org.rocksdb.WriteBatch;
 
 public class ColumnFamily {
+
     public static void main(String[] args) throws RocksDBException {
         RocksDB.loadLibrary();
 
@@ -18,5 +20,15 @@ public class ColumnFamily {
                 "ColumnFamily0".getBytes(), new ColumnFamilyOptions());
         ColumnFamilyHandle handle = client.createColumnFamily(descriptor);
 
+        WriteBatch batch = new WriteBatch(Constant.K * 32);
+        for (int index = 0; index < 1024 * 1024; index++) {
+            batch.put(("key_" + index).getBytes(), ("value_" + index).getBytes());
+        }
+
+
+        // release resources
+        handle.dispose();
+        client.close();
+        options.dispose();
     }
 }
