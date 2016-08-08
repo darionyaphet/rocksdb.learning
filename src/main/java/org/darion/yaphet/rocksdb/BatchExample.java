@@ -4,7 +4,6 @@ import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.WriteBatch;
-import org.rocksdb.WriteOptions;
 
 import java.nio.charset.Charset;
 
@@ -24,16 +23,21 @@ public class BatchExample {
         Options options = new Options().setCreateIfMissing(true);
         RocksDB client = RocksDB.open(options, "/tmp/batch.db");
 
-        WriteBatch batch = new WriteBatch(1024);
+        try {
+            WriteBatch batch = new WriteBatch(1024);
 
-        //atomically apply a set of updates
-        for (int index = 0; index < 10; index++) {
-            batch.put(getBytes("key_" + index), getBytes("value_" + index));
+            //atomically apply a set of updates
+            for (int index = 0; index < 10; index++) {
+                batch.put(getBytes("key_" + index), getBytes("value_" + index));
+            }
+
+            batch.count();
+
+            for (int index = 0; index < 10; index += 2) {
+                batch.remove(getBytes("key_" + index));
+            }
+        } finally {
+            client.close();
         }
-
-        for (int index = 0; index < 10; index += 2) {
-            batch.remove(getBytes("key_" + index));
-        }
-
     }
 }
